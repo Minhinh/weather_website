@@ -1,0 +1,24 @@
+/* src/styles.css */
+
+.App {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center the content horizontally */
+  justify-content: center; /* Center the content vertically */
+  min-height: 100vh; /* Ensure the App takes up full height */
+  padding: 20px; /* Add padding to the app */
+  background-color: #e0f7fa; /* Set background color for the whole app */
+}
+
+.header-title {
+  margin-top: 20px; /* Margin for the title */
+  margin-bottom: 20px; /* Margin below the title */
+  color: #00796b; /* Title color */
+  font-weight: bold; /* Title font weight */
+}
+
+.sign-up-button {
+  margin-top: 20px; /* Margin above the Sign Up button */
+  margin-bottom: 20px; /* Margin below the Sign Up button */
+}
