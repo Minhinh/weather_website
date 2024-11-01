@@ -1,46 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const WeatherSearch = () => {
-    const [location, setLocation] = useState('');
-    const [weatherData, setWeatherData] = useState(null);
+function Homepage() {
+    const [locations, setLocations] = useState([]);
+    const [selectedLocation, setSelectedLocation] = useState('');
+    const [predictions, setPredictions] = useState(null);
 
-    const handleSearch = async () => {
-      try {
-          const response = await fetch(`http://127.0.0.1:8000/predict/weather/${location}`);
-          if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          const data = await response.json();
-          setWeatherData(data);
-      } catch (error) {
-          console.error("Error fetching weather data:", error);
-      }
-  };
-  
+    useEffect(() => {
+        // Fetch available locations
+        fetch("http://127.0.0.1:8000/locations")
+            .then(response => response.json())
+            .then(data => setLocations(data.locations))
+            .catch(error => console.error("Error fetching locations:", error));
+    }, []);
+
+    const handlePredict = () => {
+        // Fetch prediction for selected location
+        fetch(`http://127.0.0.1:8000/predict?location=${selectedLocation}`)
+            .then(response => response.json())
+            .then(data => setPredictions(data.predictions))
+            .catch(error => console.error("Error fetching prediction:", error));
+    };
 
     return (
         <div>
-            <input 
-                type="text" 
-                value={location} 
-                onChange={(e) => setLocation(e.target.value)} 
-                placeholder="Enter location"
-            />
-            <button onClick={handleSearch}>Search</button>
-
-            {weatherData && (
+            <h1>Weather Prediction</h1>
+            <select onChange={e => setSelectedLocation(e.target.value)} value={selectedLocation}>
+                <option value="">Select Location</option>
+                {locations.map((location, index) => (
+                    <option key={index} value={location}>{location}</option>
+                ))}
+            </select>
+            <button onClick={handlePredict} disabled={!selectedLocation}>
+                Get Prediction
+            </button>
+            {predictions && (
                 <div>
-                    <h2>Weather Prediction for {weatherData.location}</h2>
-                    <p>Min Temperature: {weatherData.temperature_predictions.min_temp}°C</p>
-                    <p>Max Temperature: {weatherData.temperature_predictions.max_temp}°C</p>
-                    <p>Humidity at 9 AM: {weatherData.humidity_predictions.humidity_9am}%</p>
-                    <p>Humidity at 3 PM: {weatherData.humidity_predictions.humidity_3pm}%</p>
-                    <p>Wind Speed at 9 AM: {weatherData.wind_speed_predictions.wind_speed_9am} km/h</p>
-                    <p>Wind Speed at 3 PM: {weatherData.wind_speed_predictions.wind_speed_3pm} km/h</p>
+                    <h2>Predictions for {selectedLocation}</h2>
+                    <p>Min Temperature: {predictions.min_temp} °C</p>
+                    <p>Max Temperature: {predictions.max_temp} °C</p>
+                    <p>Humidity 9AM: {predictions.humidity_9am} %</p>
+                    <p>Humidity 3PM: {predictions.humidity_3pm} %</p>
+                    <p>Wind Speed 9AM: {predictions.wind_speed_9am} km/h</p>
+                    <p>Wind Speed 3PM: {predictions.wind_speed_3pm} km/h</p>
                 </div>
             )}
         </div>
     );
-};
+}
 
-export default WeatherSearch;
+export default Homepage;
