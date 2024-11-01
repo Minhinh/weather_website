@@ -10,7 +10,7 @@ import {
 
 function Header() {
   return (
-    <AppBar position="static" style={{ backgroundColor: "#00796b" }}>
+    <AppBar position="static" style={{ backgroundColor: "#7dcbe4" }}>
       <Toolbar style={{ justifyContent: "center" }}>
         <Typography 
           variant="h6" 

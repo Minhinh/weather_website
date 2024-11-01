@@ -1,28 +1,37 @@
 import React from "react";
-import { Card, CardContent, Typography, Box } from "@mui/material";
+import { Typography } from "@mui/material";
 
-const Forecast = ({ weather, toDate }) => {
+function Forecast({ weather, toDate }) {
+  // Check if weather data is available
+  const weatherData = weather.data;
+
   return (
-    <Box display="flex" justifyContent="center" mt={5}>
-      <Card style={{ width: "300px", textAlign: "center", backgroundColor: "#b2dfdb" }}>
-        <CardContent>
-          <Typography variant="h5" component="div" style={{ color: "#004d40" }}>
-            {weather.data.city}
+    <>
+      {weatherData && weatherData.current ? (
+        <>
+          <Typography variant="h5" align="center" style={{ color: "#00796b" }}>
+            {weatherData.location.name}
           </Typography>
-          <Typography variant="subtitle1">{toDate()}</Typography>
-          <Typography variant="h6" style={{ fontWeight: "bold", color: "#00796b" }}>
-            {weather.data.temperature.current}°C
+          <Typography variant="subtitle1" align="center">
+            {toDate()}
           </Typography>
-          <Typography variant="body2" style={{ color: "#004d40" }}>
-            {weather.data.condition.description}
+          <Typography variant="h6" align="center">
+            Temperature: {weatherData.current.temperature}°C
           </Typography>
-          <Typography variant="body2" style={{ marginTop: "10px" }}>
-            Wind Speed: {weather.data.wind.speed} km/h
+          <Typography variant="body1" align="center">
+            Humidity: {weatherData.current.humidity}%
           </Typography>
-        </CardContent>
-      </Card>
-    </Box>
+          <Typography variant="body1" align="center">
+            Wind Speed: {weatherData.current.wind_speed} km/h
+          </Typography>
+        </>
+      ) : (
+        <Typography variant="h6" align="center" color="textSecondary">
+          No weather data available.
+        </Typography>
+      )}
+    </>
   );
-};
+}
 
 export default Forecast;
