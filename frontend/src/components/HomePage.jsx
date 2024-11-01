@@ -1,156 +1,46 @@
-// src/components/HomePage.jsx
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import SearchEngine from "./SearchEngine";
-import Forecast from "./Forecast";
-import {
-  Container,
-  Typography,
-  CircularProgress,
-  Box,
-  Card,
-  CardContent,
-} from "@mui/material";
-import "../styles.css";
-import "@fortawesome/fontawesome-free/css/all.min.css";
+import React, { useState } from 'react';
 
-function HomePage() {
-  const [query, setQuery] = useState("");
-  const [weather, setWeather] = useState({
-    loading: true,
-    data: {},
-    error: false,
-  });
+const WeatherSearch = () => {
+    const [location, setLocation] = useState('');
+    const [weatherData, setWeatherData] = useState(null);
 
-  const toDate = () => {
-    const months = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
-    const days = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
-
-    const currentDate = new Date();
-    const date = `${days[currentDate.getDay()]} ${currentDate.getDate()} ${
-      months[currentDate.getMonth()]
-    }`;
-    return date;
-  };
-
-  const search = async (event) => {
-    event.preventDefault();
-    if (
-      event.type === "click" ||
-      (event.type === "keypress" && event.key === "Enter")
-    ) {
-      setWeather({ ...weather, loading: true });
-      const apiKey = "b03a640e5ef6980o4da35b006t5f2942";
-      const url = `https://api.shecodes.io/weather/v1/current?query=${query}&key=${apiKey}`;
-
-      await axios
-        .get(url)
-        .then((res) => {
-          setWeather({ data: res.data, loading: false, error: false });
-        })
-        .catch((error) => {
-          setWeather({ ...weather, data: {}, error: true });
-        });
-    }
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const apiKey = "b03a640e5ef6980o4da35b006t5f2942";
-      const url = `https://api.shecodes.io/weather/v1/current?query=Rabat&key=${apiKey}`;
-
+    const handleSearch = async () => {
       try {
-        const response = await axios.get(url);
-        setWeather({ data: response.data, loading: false, error: false });
+          const response = await fetch(`http://127.0.0.1:8000/predict/weather/${location}`);
+          if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+          setWeatherData(data);
       } catch (error) {
-        setWeather({ data: {}, loading: false, error: true });
+          console.error("Error fetching weather data:", error);
       }
-    };
+  };
+  
 
-    fetchData();
-  }, []);
+    return (
+        <div>
+            <input 
+                type="text" 
+                value={location} 
+                onChange={(e) => setLocation(e.target.value)} 
+                placeholder="Enter location"
+            />
+            <button onClick={handleSearch}>Search</button>
 
-  return (
-    <Container
-      className="App"
-      maxWidth="md"
-      style={{
-        padding: "20px",
-        borderRadius: "10px",
-        backgroundColor: "transparent",
-      }}
-    >
-      <Typography
-        variant="h4"
-        align="center"
-        gutterBottom
-        style={{ color: "#00796b", fontWeight: "bold" }}
-      >
-        Weather Forecast
-      </Typography>
-
-      <SearchEngine query={query} setQuery={setQuery} search={search} />
-
-      <Box display="flex" justifyContent="center" flexWrap="wrap" mt={4}>
-        <Card className="card">
-          <CardContent>
-            {weather.loading ? (
-              <Box display="flex" justifyContent="center">
-                <CircularProgress color="primary" />
-              </Box>
-            ) : weather.error ? (
-              <Typography variant="h6" color="error" align="center">
-                Sorry, city not found. Please try again.
-              </Typography>
-            ) : (
-              <Forecast weather={weather} toDate={toDate} />
+            {weatherData && (
+                <div>
+                    <h2>Weather Prediction for {weatherData.location}</h2>
+                    <p>Min Temperature: {weatherData.temperature_predictions.min_temp}°C</p>
+                    <p>Max Temperature: {weatherData.temperature_predictions.max_temp}°C</p>
+                    <p>Humidity at 9 AM: {weatherData.humidity_predictions.humidity_9am}%</p>
+                    <p>Humidity at 3 PM: {weatherData.humidity_predictions.humidity_3pm}%</p>
+                    <p>Wind Speed at 9 AM: {weatherData.wind_speed_predictions.wind_speed_9am} km/h</p>
+                    <p>Wind Speed at 3 PM: {weatherData.wind_speed_predictions.wind_speed_3pm} km/h</p>
+                </div>
             )}
-          </CardContent>
-        </Card>
-        <Card className="card">
-          <CardContent>
-            <Typography variant="h5" align="center">
-              Card 2
-            </Typography>
-            <Typography variant="body2" align="center">
-              Additional weather information can go here.
-            </Typography>
-          </CardContent>
-        </Card>
-        <Card className="card">
-          <CardContent>
-            <Typography variant="h5" align="center">
-              Card 3
-            </Typography>
-            <Typography variant="body2" align="center">
-              Further statistics or graphics can be included here.
-            </Typography>
-          </CardContent>
-        </Card>
-      </Box>
-    </Container>
-  );
-}
+        </div>
+    );
+};
 
-export default HomePage;
+export default WeatherSearch;

@@ -1,32 +1,91 @@
-import React from "react";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
+// src/components/SearchBar.jsx
+import React, { useState } from "react";
+import { TextField, Button, Box } from "@mui/material";
 
-const SearchEngine = ({ query, setQuery, search }) => {
+function SearchBar({ onSearch }) {
+  const [inputs, setInputs] = useState({
+    minTemp: "",
+    maxTemp: "",
+    humidity9am: "",
+    humidity3pm: "",
+    windSpeed9am: "",
+    windSpeed3pm: "",
+  });
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setInputs((prevInputs) => ({
+      ...prevInputs,
+      [name]: value,
+    }));
+  };
+
+  const handleSearch = (event) => {
+    event.preventDefault();
+    onSearch(inputs); // Pass the inputs back to the parent component
+  };
+
   return (
-    <form onSubmit={search}>
+    <Box component="form" onSubmit={handleSearch} display="flex" flexDirection="column" alignItems="center">
       <TextField
+        name="minTemp"
+        label="Min Temperature"
+        type="number"
         variant="outlined"
-        placeholder="Search City"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            search(e); // Trigger the search function when the Enter key is pressed
-          }
-        }}
-        style={{ margin: "10px" }}
+        onChange={handleInputChange}
+        style={{ margin: "5px" }}
+        required
       />
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={search}
-        style={{ marginTop: "10px" }}
-      >
-        Search
+      <TextField
+        name="maxTemp"
+        label="Max Temperature"
+        type="number"
+        variant="outlined"
+        onChange={handleInputChange}
+        style={{ margin: "5px" }}
+        required
+      />
+      <TextField
+        name="humidity9am"
+        label="Humidity 9 AM"
+        type="number"
+        variant="outlined"
+        onChange={handleInputChange}
+        style={{ margin: "5px" }}
+        required
+      />
+      <TextField
+        name="humidity3pm"
+        label="Humidity 3 PM"
+        type="number"
+        variant="outlined"
+        onChange={handleInputChange}
+        style={{ margin: "5px" }}
+        required
+      />
+      <TextField
+        name="windSpeed9am"
+        label="Wind Speed 9 AM"
+        type="number"
+        variant="outlined"
+        onChange={handleInputChange}
+        style={{ margin: "5px" }}
+        required
+      />
+      <TextField
+        name="windSpeed3pm"
+        label="Wind Speed 3 PM"
+        type="number"
+        variant="outlined"
+        onChange={handleInputChange}
+        style={{ margin: "5px" }}
+        required
+      />
+      <Button variant="contained" color="primary" type="submit" style={{ marginTop: "10px" }}>
+        Get Weather Prediction
       </Button>
-    </form>
+    </Box>
   );
-};
+}
 
-export default SearchEngine;
+export default SearchBar;
