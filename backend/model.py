@@ -43,22 +43,22 @@ class WeatherModel:
 
         # Train and save each Random Forest model
         self.models["random_forest_min"].fit(X, y["min_temp"])
-        joblib.dump(self.models["random_forest_min"], 'random_forest_min.pkl')
+        joblib.dump(self.models["random_forest_min"], 'data/random_forest_min.pkl')
         
         self.models["random_forest_max"].fit(X, y["max_temp"])
-        joblib.dump(self.models["random_forest_max"], 'random_forest_max.pkl')
+        joblib.dump(self.models["random_forest_max"], 'data/random_forest_max.pkl')
         
         self.models["random_forest_humidity_9am"].fit(X, y["humidity_9am"])
-        joblib.dump(self.models["random_forest_humidity_9am"], 'random_forest_humidity_9am.pkl')
+        joblib.dump(self.models["random_forest_humidity_9am"], 'data/random_forest_humidity_9am.pkl')
         
         self.models["random_forest_humidity_3pm"].fit(X, y["humidity_3pm"])
-        joblib.dump(self.models["random_forest_humidity_3pm"], 'random_forest_humidity_3pm.pkl')
+        joblib.dump(self.models["random_forest_humidity_3pm"], 'data/random_forest_humidity_3pm.pkl')
 
         self.models["random_forest_wind_speed_9am"].fit(X, y["wind_speed_9am"])
-        joblib.dump(self.models["random_forest_wind_speed_9am"], 'random_forest_wind_speed_9am.pkl')
+        joblib.dump(self.models["random_forest_wind_speed_9am"], 'data/random_forest_wind_speed_9am.pkl')
         
         self.models["random_forest_wind_speed_3pm"].fit(X, y["wind_speed_3pm"])
-        joblib.dump(self.models["random_forest_wind_speed_3pm"], 'random_forest_wind_speed_3pm.pkl')
+        joblib.dump(self.models["random_forest_wind_speed_3pm"], 'data/random_forest_wind_speed_3pm.pkl')
         
         print("All Random Forest models trained and saved successfully.")
 

@@ -50,8 +50,9 @@ async def predict_weather(
             }
         }
     except Exception as e:
-        print("Error occurred during weather prediction:", e)
-        raise HTTPException(status_code=500, detail="Weather prediction error")
+        print(f"Error in weather prediction: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal weather prediction error")
+
 
 @app.get("/predict/accidents/{rainfall}")
 async def predict_accidents(rainfall: float):
