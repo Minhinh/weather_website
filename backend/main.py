@@ -13,6 +13,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Initialize the models
 weather_model = WeatherModel()
 accident_model = AccidentModel()
