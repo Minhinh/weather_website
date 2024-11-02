@@ -11,37 +11,26 @@ import {
     Select,
     MenuItem,
     InputLabel,
+    Alert,
 } from '@mui/material';
 
 function Homepage() {
-    const [locations, setLocations] = useState([]); // State for locations
-    const [selectedLocation, setSelectedLocation] = useState(''); // State for selected location
-    const [predictions, setPredictions] = useState(null); // State for weather predictions
-    const [loading, setLoading] = useState(false); // State for loading
+    const [locations, setLocations] = useState([]);
+    const [selectedLocation, setSelectedLocation] = useState('');
+    const [predictions, setPredictions] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [accidentWarning, setAccidentWarning] = useState('');
+    const [rainfallWarning, setRainfallWarning] = useState('');
 
-    // Fetch available locations on component mount
     useEffect(() => {
-        const fetchLocations = async () => {
-            try {
-                const response = await fetch("http://127.0.0.1:8000/locations");
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                console.log("Fetched locations:", data); // Log the fetched data
-                setLocations(data); // Update locations state
-            } catch (error) {
-                console.error("Error fetching locations:", error);
-            }
-        };
-
-        fetchLocations();
+        fetch("http://127.0.0.1:8000/locations")
+            .then(response => response.json())
+            .then(data => setLocations(data))
+            .catch(error => console.error("Error fetching locations:", error));
     }, []);
 
-    // Function to handle prediction fetching
     const handlePredict = () => {
-        setLoading(true); // Set loading to true before fetching predictions
-        // Fetch prediction for selected location
+        setLoading(true);
         fetch(`http://127.0.0.1:8000/predict`, {
             method: 'POST',
             headers: {
@@ -49,14 +38,28 @@ function Homepage() {
             },
             body: JSON.stringify({ location: selectedLocation }),
         })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
-                setPredictions(data); // Update predictions state
-                setLoading(false); // Set loading to false after fetching
+                let adjustedAccidents = data.total_accidents;
+                if (data.rainfall > 70) {
+                    adjustedAccidents += 2;  // Add 2 if rainfall > 70
+                } else if (data.rainfall > 65) {
+                    adjustedAccidents += 1;  // Add 1 if rainfall > 50
+                }
+
+                setPredictions({ ...data, total_accidents: adjustedAccidents });
+                setRainfallWarning(data.rainfall > 50 ? 'High rainfall expected, take precautions!' : '');
+                setAccidentWarning(adjustedAccidents > 2 ? 'High accident risk due to weather conditions!' : '');
+                setLoading(false);
             })
             .catch(error => {
                 console.error("Error fetching prediction:", error);
-                setLoading(false); // Set loading to false in case of error
+                setLoading(false);
             });
     };
 
@@ -114,7 +117,21 @@ function Homepage() {
                             <Typography variant="body1">Humidity 3PM: {predictions.humidity_3pm} %</Typography>
                             <Typography variant="body1">Wind Speed 9AM: {predictions.wind_speed_9am} km/h</Typography>
                             <Typography variant="body1">Wind Speed 3PM: {predictions.wind_speed_3pm} km/h</Typography>
+                            <Typography variant="body1">Predicted Rainfall: {predictions.rainfall} mm</Typography>
+                            <Typography variant="body1">Total Accidents Predicted: {predictions.total_accidents}</Typography>
                         </Box>
+                    )}
+
+                    {accidentWarning && (
+                        <Alert severity="warning" style={{ marginTop: '20px' }}>
+                            {accidentWarning}
+                        </Alert>
+                    )}
+
+                    {rainfallWarning && (
+                        <Alert severity="warning" style={{ marginTop: '20px' }}>
+                            {rainfallWarning}
+                        </Alert>
                     )}
                 </CardContent>
             </Card>
