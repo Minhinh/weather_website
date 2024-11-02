@@ -48,9 +48,9 @@ You don't have to ever use `eject`. The curated feature set is suitable for smal
 - **Frontend**: React.js, Material-UI
 - **Backend**: FastAPI
 - **Machine Learning**: Scikit-learn, Joblib
+- **Data Visualization**: D3.js, Chart.js, or Plotly.js
 - **Database**: CSV files for data storage
-- **Others**: Pandas, Uvicorn, CORS middleware, HTTP Exception, pydantic, pkl
-
+- **Others**: Pandas, Uvicorn, CORS middleware, HTTP Exception, pydantic, pkl, User Validation and Exception
 ## Setup Instructions
 
 ### Prerequisites
