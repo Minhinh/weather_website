@@ -1,6 +1,6 @@
 # Weather and Accident Prediction with AI App
 
-This project is a full-stack application that predicts weather conditions and accident likelihood based on weather data. It consists of a FastAPI backend and a React front-end.
+This project is a full-stack application that predicts weather conditions of cities in Australia and accident likelihood based on weather and rainfall data. It consists of a FastAPI backend and a React front-end.
 
 ## Getting Started with Create React App
 
