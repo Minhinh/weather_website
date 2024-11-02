@@ -21,20 +21,37 @@ function Homepage() {
 
     // Fetch available locations on component mount
     useEffect(() => {
-        fetch("http://127.0.0.1:8000/locations")
-            .then(response => response.json())
-            .then(data => setLocations(data.locations)) // Update locations state
-            .catch(error => console.error("Error fetching locations:", error));
+        const fetchLocations = async () => {
+            try {
+                const response = await fetch("http://127.0.0.1:8000/locations");
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                console.log("Fetched locations:", data); // Log the fetched data
+                setLocations(data); // Update locations state
+            } catch (error) {
+                console.error("Error fetching locations:", error);
+            }
+        };
+
+        fetchLocations();
     }, []);
 
     // Function to handle prediction fetching
     const handlePredict = () => {
         setLoading(true); // Set loading to true before fetching predictions
         // Fetch prediction for selected location
-        fetch(`http://127.0.0.1:8000/predict?location=${selectedLocation}`)
+        fetch(`http://127.0.0.1:8000/predict`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ location: selectedLocation }),
+        })
             .then(response => response.json())
             .then(data => {
-                setPredictions(data.predictions); // Update predictions state
+                setPredictions(data); // Update predictions state
                 setLoading(false); // Set loading to false after fetching
             })
             .catch(error => {
