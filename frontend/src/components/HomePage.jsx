@@ -6,7 +6,6 @@ import {
     Box,
     Card,
     CardContent,
-    Button,
     FormControl,
     Select,
     MenuItem,
@@ -17,7 +16,7 @@ import {
 function Homepage() {
     const [locations, setLocations] = useState([]);
     const [selectedLocation, setSelectedLocation] = useState('');
-    const [predictions, setPredictions] = useState(null);
+    const [predictions, setPredictions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [accidentWarning, setAccidentWarning] = useState('');
     const [rainfallWarning, setRainfallWarning] = useState('');
@@ -29,14 +28,15 @@ function Homepage() {
             .catch(error => console.error("Error fetching locations:", error));
     }, []);
 
-    const handlePredict = () => {
+    const handleLocationChange = (location) => {
+        setSelectedLocation(location);
         setLoading(true);
         fetch(`http://127.0.0.1:8000/predict`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ location: selectedLocation }),
+            body: JSON.stringify({ location: location }),
         })
             .then(response => {
                 if (!response.ok) {
@@ -45,16 +45,19 @@ function Homepage() {
                 return response.json();
             })
             .then(data => {
-                let adjustedAccidents = data.total_accidents;
-                if (data.rainfall > 70) {
-                    adjustedAccidents += 2;  // Add 2 if rainfall > 70
-                } else if (data.rainfall > 65) {
-                    adjustedAccidents += 1;  // Add 1 if rainfall > 50
-                }
+                let adjustedAccidents = data.map((d) => {
+                    let accidents = d.total_accidents;
+                    if (d.rainfall > 70) {
+                        accidents += 2; // Adjust based on rainfall
+                    } else if (d.rainfall > 65) {
+                        accidents += 1; // Adjust based on rainfall
+                    }
+                    return { ...d, total_accidents: accidents };
+                });
 
-                setPredictions({ ...data, total_accidents: adjustedAccidents });
-                setRainfallWarning(data.rainfall > 50 ? 'High rainfall expected, take precautions!' : '');
-                setAccidentWarning(adjustedAccidents > 2 ? 'High accident risk due to weather conditions!' : '');
+                setPredictions(adjustedAccidents);
+                setRainfallWarning(adjustedAccidents[0].rainfall > 50 ? 'High rainfall expected, take precautions!' : '');
+                setAccidentWarning(adjustedAccidents.some(d => d.total_accidents > 2) ? 'High accident risk due to weather conditions!' : '');
                 setLoading(false);
             })
             .catch(error => {
@@ -64,19 +67,8 @@ function Homepage() {
     };
 
     return (
-        <Container
-            maxWidth="md"
-            style={{
-                padding: "20px",
-                backgroundColor: "transparent",
-            }}
-        >
-            <Typography
-                variant="h4"
-                align="center"
-                gutterBottom
-                style={{ color: "#00796b", fontWeight: "bold" }}
-            >
+        <Container maxWidth="md" style={{ padding: "20px", backgroundColor: "transparent" }}>
+            <Typography variant="h4" align="center" gutterBottom style={{ color: "#00796b", fontWeight: "bold" }}>
                 Weather Prediction
             </Typography>
 
@@ -86,7 +78,7 @@ function Homepage() {
                         <InputLabel>Select Location</InputLabel>
                         <Select
                             value={selectedLocation}
-                            onChange={e => setSelectedLocation(e.target.value)}
+                            onChange={e => handleLocationChange(e.target.value)}
                             label="Select Location"
                         >
                             <MenuItem value="">
@@ -97,41 +89,41 @@ function Homepage() {
                             ))}
                         </Select>
                     </FormControl>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handlePredict}
-                        disabled={!selectedLocation || loading}
-                    >
-                        {loading ? <CircularProgress size={24} /> : 'Get Prediction'}
-                    </Button>
 
-                    {predictions && (
+                    {loading && <CircularProgress />}
+
+                    {predictions.length > 0 && (
                         <Box mt={4}>
-                            <Typography variant="h5" align="center">
-                                Predictions for {selectedLocation}
-                            </Typography>
-                            <Typography variant="body1">Min Temperature: {predictions.min_temp} °C</Typography>
-                            <Typography variant="body1">Max Temperature: {predictions.max_temp} °C</Typography>
-                            <Typography variant="body1">Humidity 9AM: {predictions.humidity_9am} %</Typography>
-                            <Typography variant="body1">Humidity 3PM: {predictions.humidity_3pm} %</Typography>
-                            <Typography variant="body1">Wind Speed 9AM: {predictions.wind_speed_9am} km/h</Typography>
-                            <Typography variant="body1">Wind Speed 3PM: {predictions.wind_speed_3pm} km/h</Typography>
-                            <Typography variant="body1">Predicted Rainfall: {predictions.rainfall} mm</Typography>
-                            <Typography variant="body1">Total Accidents Predicted: {predictions.total_accidents}</Typography>
+                            <Typography variant="h5" align="center">Predictions for {selectedLocation}</Typography>
+                            {predictions.map((prediction, index) => {
+                                const date = new Date();
+                                date.setDate(date.getDate() + index);
+                                const options = { weekday: 'long', year: 'numeric', month: 'numeric', day: 'numeric' };
+                                const formattedDate = date.toLocaleDateString('en-US', options);
+
+                                return (
+                                    <Box key={index} mt={2}>
+                                        <Typography variant="h6">{formattedDate}</Typography>
+                                        <Typography variant="body1">Min Temperature: {prediction.min_temp} °C</Typography>
+                                        <Typography variant="body1">Max Temperature: {prediction.max_temp} °C</Typography>
+                                        <Typography variant="body1">Humidity 9AM: {prediction.humidity_9am} %</Typography>
+                                        <Typography variant="body1">Humidity 3PM: {prediction.humidity_3pm} %</Typography>
+                                        <Typography variant="body1">Wind Speed 9AM: {prediction.wind_speed_9am} km/h</Typography>
+                                        <Typography variant="body1">Wind Speed 3PM: {prediction.wind_speed_3pm} km/h</Typography>
+                                        <Typography variant="body1">Predicted Rainfall: {prediction.rainfall} mm</Typography>
+                                        <Typography variant="body1">Total Accidents Predicted: {prediction.total_accidents}</Typography>
+                                    </Box>
+                                );
+                            })}
                         </Box>
                     )}
 
                     {accidentWarning && (
-                        <Alert severity="warning" style={{ marginTop: '20px' }}>
-                            {accidentWarning}
-                        </Alert>
+                        <Alert severity="warning" style={{ marginTop: '20px' }}>{accidentWarning}</Alert>
                     )}
 
                     {rainfallWarning && (
-                        <Alert severity="warning" style={{ marginTop: '20px' }}>
-                            {rainfallWarning}
-                        </Alert>
+                        <Alert severity="warning" style={{ marginTop: '20px' }}>{rainfallWarning}</Alert>
                     )}
                 </CardContent>
             </Card>

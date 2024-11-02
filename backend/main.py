@@ -5,9 +5,11 @@ from typing import List
 import joblib
 import pandas as pd
 import os
+from datetime import datetime, timedelta
 
 app = FastAPI()
 
+# Configure CORS middleware to allow requests from the React app
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
@@ -16,10 +18,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Define request and response models
 class PredictionRequest(BaseModel):
     location: str
 
-class PredictionResponse(BaseModel):
+class DailyPrediction(BaseModel):
+    day_of_week: str
+    date: str
     min_temp: int
     max_temp: int
     humidity_9am: int
@@ -27,10 +32,12 @@ class PredictionResponse(BaseModel):
     wind_speed_9am: int
     wind_speed_3pm: int
     total_accidents: int
-    rainfall: int  # Add rainfall to the response
+    rainfall: int
 
+# Weather model class to handle loading and predicting
 class WeatherModel:
     def __init__(self):
+        # Load models from the specified path
         self.models = {
             "min_temp": joblib.load('data/random_forest_min_temp.pkl'),
             "max_temp": joblib.load('data/random_forest_max_temp.pkl'),
@@ -42,11 +49,13 @@ class WeatherModel:
         self.accident_model = joblib.load('data/gradient_boosting_accidents.pkl')
 
     def get_locations(self):
+        # Load data to get unique locations
         data_path = os.path.join("data", "1 Main Weather Dataset Cleaned.csv")
         data = pd.read_csv(data_path)
         return data['Location'].unique().tolist()
 
     def predict_weather(self, location):
+        # Load the weather data for prediction
         data_path = os.path.join("data", "1 Main Weather Dataset Cleaned.csv")
         data = pd.read_csv(data_path)
         location_data = data[data['Location'] == location]
@@ -55,45 +64,60 @@ class WeatherModel:
             raise ValueError("Location not found in the dataset.")
 
         latest_data = location_data.iloc[-1]
-        features = [[latest_data['MinTemp'], latest_data['MaxTemp'], 
-                     latest_data['Humidity9am'], latest_data['Humidity3pm'], 
-                     latest_data['WindSpeed9am'], latest_data['WindSpeed3pm']]]
+        predictions = []
+        today = datetime.now()
 
-        predictions = {}
-        for key in self.models:
-            predictions[key] = round(self.models[key].predict(features)[0])
+        # Predict for today and the next 5 days
+        for day in range(6):  # 0 for today, 1 for tomorrow, ..., 5 for the day after tomorrow
+            features = [[
+                latest_data['MinTemp'] + day,  # Increment min temp by day
+                latest_data['MaxTemp'] + day,  # Increment max temp by day
+                latest_data['Humidity9am'] + day,
+                latest_data['Humidity3pm'] + day,
+                latest_data['WindSpeed9am'] + day,
+                latest_data['WindSpeed3pm'] + day
+            ]]
+
+            daily_predictions = {}
+            for key in self.models:
+                daily_predictions[key] = round(self.models[key].predict(features)[0])
+
+            # Assuming rainfall correlates with morning humidity for simplicity
+            rainfall = daily_predictions['humidity_9am']
+            total_accidents = round(self.accident_model.predict([[rainfall]])[0])
+
+            # Calculate the date and day of the week
+            prediction_date = today + timedelta(days=day)
+            predictions.append(DailyPrediction(
+                day_of_week=prediction_date.strftime('%A'),  # Get the full name of the day
+                date=prediction_date.strftime('%d-%m-%Y'),
+                min_temp=daily_predictions['min_temp'],
+                max_temp=daily_predictions['max_temp'],
+                humidity_9am=daily_predictions['humidity_9am'],
+                humidity_3pm=daily_predictions['humidity_3pm'],
+                wind_speed_9am=daily_predictions['wind_speed_9am'],
+                wind_speed_3pm=daily_predictions['wind_speed_3pm'],
+                total_accidents=total_accidents,
+                rainfall=daily_predictions['humidity_9am']  # Including rainfall in the response
+            ))
 
         return predictions
 
-    def predict_accidents(self, rainfall):
-        return round(self.accident_model.predict([[rainfall]])[0])
-
+# Instantiate the WeatherModel
 weather_model = WeatherModel()
 
 @app.get("/locations", response_model=List[str])
 async def get_locations():
     return weather_model.get_locations()
 
-@app.post("/predict", response_model=PredictionResponse)
+@app.post("/predict", response_model=List[DailyPrediction])
 async def predict_weather(request: PredictionRequest):
     try:
-        predictions = weather_model.predict_weather(request.location)
-        rainfall = predictions['humidity_9am']  # Assuming rainfall correlates with morning humidity for simplicity
-        total_accidents = weather_model.predict_accidents(rainfall)
-
-        return PredictionResponse(
-            min_temp=predictions['min_temp'],
-            max_temp=predictions['max_temp'],
-            humidity_9am=predictions['humidity_9am'],
-            humidity_3pm=predictions['humidity_3pm'],
-            wind_speed_9am=predictions['wind_speed_9am'],
-            wind_speed_3pm=predictions['wind_speed_3pm'],
-            total_accidents=total_accidents,
-            rainfall=rainfall  # Including rainfall in the response
-        )
+        return weather_model.predict_weather(request.location)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
+# Run the app
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8000)
