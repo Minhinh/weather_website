@@ -5,7 +5,8 @@ import { motion } from "framer-motion";
 import WeatherOverview from "./WeatherOverview";
 import SearchLocation from "./SearchLocation";
 import LoadingSpinner from "./LoadingSpinner";
-import ForecastOverview from "./ForecastOverview"; // Importing ForecastOverview
+import ForecastOverview from "./ForecastOverview";
+import { Link } from "react-router-dom"; // Import Link
 import "./HomePage.css";
 
 function HomePage() {
@@ -82,7 +83,11 @@ function HomePage() {
             />
             {loading && <LoadingSpinner />}
             {predictions.length > 0 && (
-              <WeatherOverview predictions={predictions} />
+              <Link to="/statistics" style={{ textDecoration: "none" }}>
+                <div className="weather-card"> {/* Wrap in Link */}
+                  <WeatherOverview predictions={predictions} />
+                </div>
+              </Link>
             )}
           </Grid>
           <Grid item xs={12} md={8}>
@@ -91,8 +96,7 @@ function HomePage() {
                 location={selectedLocation}
                 predictions={predictions}
               />
-            )}{" "}
-            {/* Pass predictions here */}
+            )}
           </Grid>
         </Grid>
       </Container>

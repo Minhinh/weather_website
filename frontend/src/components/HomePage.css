@@ -17,7 +17,14 @@ body {
 .cloudy-background {
     background: linear-gradient(to bottom, #374b66, #526D82, #97bbd1);
 }
-
+.weather-card {
+    transition: transform 0.3s;
+  }
+  
+  .weather-card:hover {
+    transform: scale(1.05); /* Scale up on hover */
+  }
+  
 /* Background Animation */
 .background-animation {
     position: absolute;
