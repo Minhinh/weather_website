@@ -1,6 +1,6 @@
 import React from 'react';
 import { Paper, Typography } from '@mui/material';
-import { Cloud, WbSunny, Umbrella, WindPower, WarningAmber, AccessTime, CalendarToday } from '@mui/icons-material';
+import { Cloud, WbSunny, Umbrella, WarningAmber, AccessTime, CalendarToday } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
 const ForecastOverview = ({ location, predictions }) => {

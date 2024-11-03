@@ -33,15 +33,6 @@ function Header() {
           <Button color="inherit" component={Link} to="/statistics" style={{ margin: "0 10px" }}>
             <i className="fas fa-chart-bar"></i> Statistics
           </Button>
-          <Button color="inherit" component={Link} to="/feedback" style={{ margin: "0 10px" }}>
-            <i className="fas fa-comments"></i> Feedback
-          </Button>
-          <Button color="inherit" component={Link} to="/about" style={{ margin: "0 10px" }}>
-            <i className="fas fa-info-circle"></i> About Us
-          </Button>
-          <Button color="inherit" component={Link} to="/signup" className="sign-up-button" style={{ marginLeft: "10px" }}>
-            <i className="fas fa-user-plus"></i> Sign Up
-          </Button>
         </div>
       </Toolbar>
     </AppBar>
