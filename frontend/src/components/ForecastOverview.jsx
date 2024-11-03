@@ -53,7 +53,7 @@ const ForecastOverview = ({ location, predictions }) => {
         <div className="forecast-overview" style={{ margin: '20px', color: 'white' }}>
             <Paper elevation={3} style={{ padding: '16px', marginBottom: '20px', backgroundColor: 'transparent' }}>
                 <Typography variant="h6" gutterBottom>
-                    <AccessTime style={{ verticalAlign: 'middle', color: 'white' }} /> Hourly Forecast for {location} (Starting from 10 p.m.)
+                    <AccessTime style={{ verticalAlign: 'middle', color: 'white' }} /> Hourly Forecast for {location} 
                 </Typography>
                 <div style={{ display: 'flex', overflowX: 'auto', padding: '10px' }}>
                     {hourlyForecasts.map((hour, index) => (

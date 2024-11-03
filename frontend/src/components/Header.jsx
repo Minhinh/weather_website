@@ -19,7 +19,7 @@ function Header() {
             padding: "0 200px", // Padding for space around title
             color: "white" 
           }}>
-          Weather Prediction App
+          Weather Wise 
         </Typography>
 
         <div style={{ 

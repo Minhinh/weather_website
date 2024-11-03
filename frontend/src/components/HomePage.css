@@ -81,3 +81,21 @@ body {
         flex: 1 1 calc(25% - 20px); /* Four cards per row on large screens */
     }
 }
+
+.weather-card {
+    background-color: rgba(255, 255, 255, 0.1); /* semi-transparent white */
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* This helps distribute space evenly */
+    height: 100%; /* Makes sure the card expands to fit */
+  }
+  
+  @media (max-width: 600px) {
+    .weather-card {
+      padding: 10px; /* Adjust padding for smaller screens */
+    }
+  }
+  
