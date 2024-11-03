@@ -14,15 +14,14 @@ import {
     ListItemText,
     Popper,
     Paper,
+    Grid2,
     ClickAwayListener,
-    Button,
-    IconButton,
-    Switch,
-    Grid,
-    LinearProgress,
 } from '@mui/material';
-import { WbSunny, Cloud, Grain, Warning, LocationOn, Brightness4, Brightness7 } from '@mui/icons-material';
-import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
+import WbSunnyIcon from '@mui/icons-material/WbSunny';
+import OpacityIcon from '@mui/icons-material/Opacity';
+import AirIcon from '@mui/icons-material/Air';
+import CloudIcon from '@mui/icons-material/Cloud';
+import ThunderstormIcon from '@mui/icons-material/Thunderstorm';
 
 function Homepage() {
     const [locations, setLocations] = useState([]);
@@ -35,14 +34,6 @@ function Homepage() {
     const [selectedLocation, setSelectedLocation] = useState(null);
     const [randomLocations, setRandomLocations] = useState([]);
     const [anchorEl, setAnchorEl] = useState(null);
-    const [darkMode, setDarkMode] = useState(false);
-
-    const theme = createTheme({
-        palette: {
-            mode: darkMode ? 'dark' : 'light',
-            primary: { main: '#00796b' },
-        },
-    });
 
     useEffect(() => {
         fetch("http://127.0.0.1:8000/locations")
@@ -74,22 +65,23 @@ function Homepage() {
 
         fetch(`http://127.0.0.1:8000/predict`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+            },
             body: JSON.stringify({ location }),
         })
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                const adjustedData = data.map(d => ({
-                    ...d,
-                    total_accidents: d.rainfall > 70 ? d.total_accidents + 2 : d.total_accidents + (d.rainfall > 65 ? 1 : 0),
-                }));
+                let adjustedAccidents = data.map(d => {
+                    let accidents = d.total_accidents;
+                    if (d.rainfall > 70) accidents += 2;
+                    else if (d.rainfall > 65) accidents += 1;
+                    return { ...d, total_accidents: accidents };
+                });
 
-                setPredictions(adjustedData);
-                setRainfallWarning(adjustedData[0].rainfall > 50 ? 'High rainfall expected, take precautions!' : '');
-                setAccidentWarning(adjustedData.some(d => d.total_accidents > 2) ? 'High accident risk due to weather conditions!' : '');
+                setPredictions(adjustedAccidents);
+                setRainfallWarning(adjustedAccidents[0].rainfall > 50 ? 'High rainfall expected, take precautions!' : '');
+                setAccidentWarning(adjustedAccidents.some(d => d.total_accidents > 2) ? 'High accident risk due to weather conditions!' : '');
                 setLoading(false);
             })
             .catch(error => {
@@ -98,97 +90,115 @@ function Homepage() {
             });
     };
 
-    const handleDetectLocation = () => {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                // Assume a backend endpoint handles lat/lon
-                const { latitude, longitude } = position.coords;
-                setLoading(true);
-                fetch(`http://127.0.0.1:8000/predict/location?lat=${latitude}&lon=${longitude}`)
-                    .then(response => response.json())
-                    .then(data => setPredictions(data))
-                    .finally(() => setLoading(false));
-            },
-            (error) => console.error("Geolocation error:", error)
-        );
+    const handleDropdownClose = () => {
+        setAnchorEl(null);
     };
 
-    const handleDropdownClose = () => setAnchorEl(null);
-    const toggleDarkMode = () => setDarkMode(!darkMode);
+    const getGradientBackground = (rainfall) => {
+        if (rainfall > 50) return 'linear-gradient(to right, #4b79a1, #283e51)';
+        if (rainfall > 70) return 'linear-gradient(to right, #gray, #a8c0ff)';
+        return 'linear-gradient(to right, #56ccf2, #2f80ed)';
+    };
 
     return (
-        <ThemeProvider theme={theme}>
-            <Container maxWidth="md" style={{ padding: "20px" }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography variant="h4" gutterBottom style={{ fontWeight: "bold" }}>
-                        Weather Prediction
-                    </Typography>
-                    <IconButton onClick={toggleDarkMode}>
-                        {darkMode ? <Brightness7 /> : <Brightness4 />}
-                    </IconButton>
+        <Container maxWidth="lg" style={{ padding: "20px", backgroundColor: "rgba(0, 0, 0, 0.7)", color: "white" }}>
+            <Typography variant="h4" align="center" gutterBottom style={{ fontWeight: "bold", color: "#BBDEFB" }}>
+                Weather Prediction
+            </Typography>
+
+            {/* Location Search Input */}
+            <TextField
+                fullWidth
+                label="Search Location"
+                variant="outlined"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                style={{ marginBottom: "20px", backgroundColor: "#1C2331", color: "white" }}
+                InputLabelProps={{ style: { color: '#BBDEFB' } }}
+            />
+
+            {/* Location Dropdown */}
+            <Popper open={Boolean(anchorEl)} anchorEl={anchorEl} placement="bottom-start">
+                <ClickAwayListener onClickAway={handleDropdownClose}>
+                    <Paper elevation={3}>
+                        <List>
+                            {filteredLocations.map((location, index) => (
+                                <ListItem button key={index} onClick={() => handleLocationClick(location)}>
+                                    <ListItemText primary={location} />
+                                </ListItem>
+                            ))}
+                        </List>
+                    </Paper>
+                </ClickAwayListener>
+            </Popper>
+
+            {/* Loading Spinner */}
+            {loading && <CircularProgress color="inherit" />}
+
+            {/* Main Weather Display */}
+            <Box mt={4}>
+                <Grid2 container spacing={3}>
+                    <Grid2 item xs={12} md={8}>
+                        {selectedLocation && predictions.length > 0 && (
+                            <Card style={{
+                                background: getGradientBackground(predictions[0].rainfall),
+                                padding: "20px",
+                                color: "#ECEFF1"
+                            }}>
+                                <Typography variant="h3" align="center">{predictions[0].max_temp}°C</Typography>
+                                <Typography variant="h6" align="center">{selectedLocation} - {predictions[0].condition}</Typography>
+                                <Typography variant="body2" align="center">
+                                    "Expect {predictions[0].description}. Take necessary precautions."
+                                </Typography>
+                            </Card>
+                        )}
+                    </Grid2>
+
+                    <Grid2 item xs={12} md={4}>
+                        <Box display="flex" flexDirection="column" gap={2}>
+                            {rainfallWarning && <Alert severity="warning">{rainfallWarning}</Alert>}
+                            {accidentWarning && <Alert severity="warning">{accidentWarning}</Alert>}
+                        </Box>
+                    </Grid2>
+                </Grid2>
+            </Box>
+
+            {/* Forecast Display */}
+            {predictions.length > 0 && (
+                <Box mt={4}>
+                    <Typography variant="h5" align="center">5-Day Forecast</Typography>
+                    <Grid2 container spacing={3} mt={2}>
+                        {predictions.slice(0, 5).map((prediction, index) => (
+                            <Grid2 item xs={12} sm={6} md={4} key={index}>
+                                <Card style={{
+                                    background: getGradientBackground(prediction.rainfall),
+                                    color: "#ECEFF1",
+                                    padding: "10px",
+                                    borderRadius: "10px",
+                                }}>
+                                    <CardContent>
+                                        <Typography variant="h6" gutterBottom>{prediction.dayName}</Typography>
+                                        <Box display="flex" alignItems="center" gap={1}>
+                                            <WbSunnyIcon /> <Typography>Min: {prediction.min_temp}°C</Typography>
+                                            <WbSunnyIcon /> <Typography>Max: {prediction.max_temp}°C</Typography>
+                                        </Box>
+                                        <Box display="flex" alignItems="center" gap={1}>
+                                            <OpacityIcon /> <Typography>Humidity: {prediction.humidity_9am}%</Typography>
+                                            <AirIcon /> <Typography>Wind: {prediction.wind_speed_3pm} km/h</Typography>
+                                        </Box>
+                                        <Box display="flex" alignItems="center" gap={1}>
+                                            <CloudIcon /> <Typography>Rainfall: {prediction.rainfall} mm</Typography>
+                                            <ThunderstormIcon /> <Typography>Accidents: {prediction.total_accidents}</Typography>
+                                        </Box>
+                                    </CardContent>
+                                </Card>
+                            </Grid2>
+                        ))}
+                    </Grid2>
                 </Box>
+            )}
+        </Container>
+    );
+}
 
-                <TextField
-                    fullWidth
-                    label="Search Location"
-                    variant="outlined"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    style={{ marginBottom: "20px" }}
-                    onClick={(e) => setAnchorEl(e.currentTarget)}
-                />
-
-                <Popper open={Boolean(anchorEl)} anchorEl={anchorEl} placement="bottom-start">
-                    <ClickAwayListener onClickAway={handleDropdownClose}>
-                        <Paper elevation={3}>
-                            <List>
-                                {filteredLocations.map((location, index) => (
-                                    <ListItem button key={index} onClick={() => handleLocationClick(location)}>
-                                        <ListItemText primary={location} />
-                                    </ListItem>
-                                ))}
-                            </List>
-                        </Paper>
-                    </ClickAwayListener>
-                </Popper>
-
-                <Box display="flex" justifyContent="space-around" flexWrap="wrap" mt={2}>
-                    {randomLocations.map((location, index) => (
-                        <Card
-                            key={index}
-                            onClick={() => handleLocationClick(location)}
-                            variant="outlined"
-                            style={{
-                                width: "30%",
-                                margin: "10px",
-                                cursor: "pointer",
-                                backgroundColor: selectedLocation === location ? "#e0f7fa" : "white",
-                            }}
-                        >
-                            <CardContent>
-                                <Typography variant="h6" align="center">{location}</Typography>
-                                <Typography variant="body2" align="center">Min Temp: {Math.floor(Math.random() * 10 + 15)}°C</Typography>
-                                <Typography variant="body2" align="center">Max Temp: {Math.floor(Math.random() * 15 + 25)}°C</Typography>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </Box>
-
-                <Button variant="contained" color="primary" onClick={handleDetectLocation} startIcon={<LocationOn />} style={{ margin: "20px auto", display: "block" }}>
-                    Detect My Location
-                </Button>
-
-                {loading && <CircularProgress style={{ marginTop: 20 }} />}
-
-                {predictions.length > 0 && selectedLocation && (
-                    <Box mt={4}>
-                        <Typography variant="h5" align="center">Predictions for {selectedLocation}</Typography>
-                        {predictions.map((prediction, index) => {
-                            const date = new Date();
-                            date.setDate(date.getDate() + index);
-                            const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
-
-                            return (
-                                <Box key={index} mt={2}>
-                                    <Typography variant="h6">{dayName}</Typography>
-                                    <Typography variant="body1" style={{ color: prediction.max_temp > 30 ? "red" : "blue" 
+export default Homepage;
