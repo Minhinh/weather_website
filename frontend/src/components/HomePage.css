@@ -1,0 +1,21 @@
+.sunny-background {
+    background: linear-gradient(to top, #FFD700, #FFF);
+}
+
+.rainy-background {
+    background: linear-gradient(to bottom, #00BFFF, #00416A);
+}
+
+.cloudy-background {
+    background: linear-gradient(to bottom, #B0C4DE, #FFFFFF);
+}
+
+/* Optional styles to improve the UI */
+.background-animation {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
