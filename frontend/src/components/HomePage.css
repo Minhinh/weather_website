@@ -11,11 +11,11 @@ body {
 }
 
 .rainy-background {
-    background: linear-gradient(to bottom, #87a4a7, #7AB2D3, #4A628A);
+    background: linear-gradient(to bottom, #354a94, #3b3a77, #535C91);
 }
 
 .cloudy-background {
-    background: linear-gradient(to bottom, #798697, #FFFFFF);
+    background: linear-gradient(to bottom, #374b66, #526D82, #97bbd1);
 }
 
 /* Background Animation */
@@ -30,25 +30,47 @@ body {
 
 /* Forecast Card Styles */
 .forecast-card {
-    min-width: 120px;
-    margin: 0 7px;
+    flex: 1 1 120px; /* Allow cards to grow and shrink */
+    margin: 10px; /* Adjust margins for spacing */
     padding: 16px;
-    text-align: center;
-    height: 100px; /* Set a fixed height for cards */
-    transition: transform 0.2s ease, box-shadow 0.2s ease; /* Animation for hover effects */
-    border-radius: 8px; /* Rounded corners for cards */
-    color: #333; /* Set text color for better contrast */
-    background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background for cards */
+    text-align: center; 
+    border-radius: 8px; 
+    color: #333; 
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column; /* Arrange items vertically */
+    justify-content: center; /* Center items vertically */
+    transition: transform 0.2s ease, box-shadow 0.2s ease; 
+    aspect-ratio: 1 / 1; /* Maintain a 1:1 aspect ratio */
 }
 
 .forecast-card:hover {
-    transform: scale(1.05); /* Slightly enlarge the card */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Add shadow on hover */
+    transform: scale(1.05); 
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Flex Container for Cards */
+.forecast-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow cards to wrap */
+    justify-content: center; /* Center the cards */
 }
 
 /* Optional styles to improve the UI */
 @media (max-width: 600px) {
-    .MuiGrid-item {
-        padding: 0 10px; /* Adjust padding for small screens */
+    .forecast-card {
+        flex: 1 1 100%; /* Full width on small screens */
+    }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+    .forecast-card {
+        flex: 1 1 calc(50% - 20px); /* Two cards per row on medium screens */
+    }
+}
+
+@media (min-width: 901px) {
+    .forecast-card {
+        flex: 1 1 calc(25% - 20px); /* Four cards per row on large screens */
     }
 }

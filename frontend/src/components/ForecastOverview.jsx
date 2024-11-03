@@ -1,57 +1,81 @@
 import React from 'react';
 import { Paper, Typography } from '@mui/material';
-import { Cloud, WbSunny, Umbrella } from '@mui/icons-material';
+import { Cloud, WbSunny, Umbrella, WindPower, WarningAmber, AccessTime, CalendarToday } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 const ForecastOverview = ({ location, predictions }) => {
-    // Return early if predictions are not available
+    const navigate = useNavigate(); // Use useNavigate for routing
+
     if (!predictions || predictions.length === 0) {
         return <div>No predictions available for {location}.</div>;
     }
 
-    // Get the current hour
-    const currentHour = new Date().getHours();
+    const today = new Date();
+    today.setHours(22, 0, 0, 0);
 
-    // Get hourly forecasts for the next 24 hours
-    const hourlyForecasts = predictions.flatMap(daily => daily.hourly_predictions).slice(currentHour, currentHour + 24);
+    const hourlyForecasts = Array.from({ length: 24 }, (_, index) => {
+        const hour = new Date(today);
+        hour.setHours(today.getHours() + index);
+        const forecast = predictions.flatMap(daily => daily.hourly_predictions)[index % predictions[0].hourly_predictions.length] || {};
+        return {
+            time: hour,
+            temperature: forecast.temperature || 'N/A',
+            condition: forecast.condition || 'Sunny',
+        };
+    });
 
-    // Daily forecasts for the next 7 days
     const dailyForecasts = predictions.slice(0, 7);
+
+    const getDayOfWeek = (dayIndex) => {
+        const day = new Date();
+        day.setDate(today.getDate() + dayIndex);
+        return day.toLocaleDateString('en-US', { weekday: 'short' });
+    };
 
     const getWeatherIcon = (condition) => {
         switch (condition) {
             case 'Sunny':
-                return <WbSunny />;
+                return <WbSunny style={{ color: 'white' }} />;
             case 'Rainy':
-                return <Umbrella />;
+                return <Umbrella style={{ color: 'white' }} />;
             case 'Cloudy':
-                return <Cloud />;
+                return <Cloud style={{ color: 'white' }} />;
             default:
-                return <WbSunny />;
+                return <WbSunny style={{ color: 'white' }} />;
         }
     };
 
-    // Get today's date for displaying day of the week
-    const options = { weekday: 'short' };
-    const today = new Date().toLocaleDateString('en-US', options);
-
-    // Assume these are the last predictions for accidents, wind gusts, and rainfall
-    const windGustSpeed = predictions[0].wind_gust_speed; // Replace with actual data source
-    const numberOfAccidents = predictions[0].total_accidents; // Replace with actual data source
-    const totalRainfall = predictions[0].rainfall; // Replace with actual data source
+    const handleCardClick = () => {
+        navigate('/statistics'); // Use navigate to route to the Statistics page
+    };
 
     return (
         <div className="forecast-overview" style={{ margin: '20px', color: 'white' }}>
-            {/* Hourly Forecast Section */}
             <Paper elevation={3} style={{ padding: '16px', marginBottom: '20px', backgroundColor: 'transparent' }}>
                 <Typography variant="h6" gutterBottom>
-                    Hourly Forecast for {location}
+                    <AccessTime style={{ verticalAlign: 'middle', color: 'white' }} /> Hourly Forecast for {location} (Starting from 10 p.m.)
                 </Typography>
                 <div style={{ display: 'flex', overflowX: 'auto', padding: '10px' }}>
                     {hourlyForecasts.map((hour, index) => (
-                        <Paper key={index} elevation={2} style={{ minWidth: '120px', height: '120px', margin: '0 7px', padding: '16px', textAlign: 'center', backgroundColor: 'transparent', color: 'white' }}>
-                            <Typography variant="body2">
-                                {new Date(hour.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || 'Loading...'}
-                            </Typography>
+                        <Paper
+                            key={index}
+                            elevation={2}
+                            style={{
+                                minWidth: '120px',
+                                height: '120px',
+                                margin: '0 7px',
+                                padding: '16px',
+                                textAlign: 'center',
+                                backgroundColor: 'transparent',
+                                color: 'white',
+                                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                cursor: 'pointer',
+                            }}
+                            onClick={handleCardClick} // Route to Statistics on click
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'} // Scale up on hover
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'} // Reset scale on leave
+                        >
+                            <Typography variant="body2">{hour.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Typography>
                             <Typography variant="body1">Temp: {hour.temperature}°C</Typography>
                             {getWeatherIcon(hour.condition)}
                         </Paper>
@@ -59,56 +83,121 @@ const ForecastOverview = ({ location, predictions }) => {
                 </div>
             </Paper>
 
-            {/* Daily Forecast Section */}
             <Paper elevation={3} style={{ marginTop: '20px', padding: '16px', backgroundColor: 'transparent' }}>
                 <Typography variant="h6" gutterBottom>
-                    Daily Forecast for {location}
+                    <CalendarToday style={{ verticalAlign: 'middle', color: 'white' }} /> Daily Forecast for {location}
                 </Typography>
                 <div style={{ display: 'flex', overflowX: 'auto', padding: '10px' }}>
-                    {dailyForecasts.map((daily, index) => {
-                        // Check if daily.date is valid, fallback if necessary
-                        const date = new Date(daily.date);
-                        const dayName = isNaN(date.getTime()) ? 'Invalid Date' : date.toLocaleDateString('en-US', { weekday: 'short' });
-                        
-                        return (
-                            <Paper key={index} elevation={2} style={{ minWidth: '150px', height: '120px', margin: '0 5px', padding: '16px', textAlign: 'center', backgroundColor: 'transparent', color: 'white' }}>
-                                <Typography variant="body2">{dayName}</Typography>
-                                <Typography variant="body1">Max: {daily.max_temp}°C</Typography>
-                                <Typography variant="body1">Min: {daily.min_temp}°C</Typography>
-                                {getWeatherIcon(daily.weather_condition)}
-                            </Paper>
-                        );
-                    })}
+                    {dailyForecasts.map((daily, index) => (
+                        <Paper
+                            key={index}
+                            elevation={2}
+                            style={{
+                                minWidth: '150px',
+                                height: '120px',
+                                margin: '0 5px',
+                                padding: '16px',
+                                textAlign: 'center',
+                                backgroundColor: 'transparent',
+                                color: 'white',
+                                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                cursor: 'pointer',
+                            }}
+                            onClick={handleCardClick} // Route to Statistics on click
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'} // Scale up on hover
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'} // Reset scale on leave
+                        >
+                            <Typography variant="body2">{getDayOfWeek(index)}</Typography>
+                            <Typography variant="body1">Max: {daily.max_temp}°C</Typography>
+                            <Typography variant="body1">Min: {daily.min_temp}°C</Typography>
+                            {getWeatherIcon(daily.weather_condition)}
+                        </Paper>
+                    ))}
                 </div>
             </Paper>
 
-            {/* Additional Information Section */}
             <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: '20px' }}>
-                <Paper elevation={2} style={{ minWidth: '150px', height: '120px', margin: '0 5px', padding: '16px', textAlign: 'center', backgroundColor: 'transparent', color: 'white' }}>
+                <Paper
+                    elevation={2}
+                    style={{
+                        minWidth: '150px',
+                        height: '120px',
+                        margin: '0 5px',
+                        padding: '16px',
+                        textAlign: 'center',
+                        backgroundColor: 'transparent',
+                        color: 'white',
+                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                        cursor: 'pointer',
+                    }}
+                    onClick={handleCardClick} // Route to Statistics on click
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'} // Scale up on hover
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'} // Reset scale on leave
+                >
                     <Typography variant="body1">Wind Gust Speed</Typography>
-                    <Typography variant="h6">{windGustSpeed} km/h</Typography>
+                    <Typography variant="h6">{predictions[0].wind_speed_3pm} km/h</Typography>
                 </Paper>
-                <Paper elevation={2} style={{ minWidth: '150px', height: '120px', margin: '0 5px', padding: '16px', textAlign: 'center', backgroundColor: 'transparent', color: 'white' }}>
+                <Paper
+                    elevation={2}
+                    style={{
+                        minWidth: '150px',
+                        height: '120px',
+                        margin: '0 5px',
+                        padding: '16px',
+                        textAlign: 'center',
+                        backgroundColor: 'transparent',
+                        color: 'white',
+                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                        cursor: 'pointer',
+                    }}
+                    onClick={handleCardClick} // Route to Statistics on click
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'} // Scale up on hover
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'} // Reset scale on leave
+                >
                     <Typography variant="body1">Number of Accidents</Typography>
-                    <Typography variant="h6">{numberOfAccidents}</Typography>
+                    <Typography variant="h6">{predictions[0].total_accidents}</Typography>
                 </Paper>
-                <Paper elevation={2} style={{ minWidth: '150px', height: '120px', margin: '0 5px', padding: '16px', textAlign: 'center', backgroundColor: 'transparent', color: 'white' }}>
+                <Paper
+                    elevation={2}
+                    style={{
+                        minWidth: '150px',
+                        height: '120px',
+                        margin: '0 5px',
+                        padding: '16px',
+                        textAlign: 'center',
+                        backgroundColor: 'transparent',
+                        color: 'white',
+                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                        cursor: 'pointer',
+                    }}
+                    onClick={handleCardClick} // Route to Statistics on click
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'} // Scale up on hover
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'} // Reset scale on leave
+                >
                     <Typography variant="body1">Rainfall</Typography>
-                    <Typography variant="h6">{totalRainfall} mm</Typography>
+                    <Typography variant="h6">{predictions[0].rainfall} mm</Typography>
                 </Paper>
             </div>
-            
-            {/* Warning Card for High Rainfall */}
-            {totalRainfall > 60 && (
-                <Paper  
-                    elevation={3} 
-                    style={{ marginTop: '20px', padding: '16px', backgroundColor: 'rgba(255, 0, 0, 0.5)', color: 'white', borderRadius: '8px', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)' }}
+
+            {predictions[0].rainfall > 60 && (
+                <Paper
+                    elevation={3}
+                    style={{
+                        marginTop: '20px',
+                        padding: '16px',
+                        backgroundColor: 'rgba(255, 0, 0, 0.5)',
+                        color: 'white',
+                        borderRadius: '8px',
+                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'} // Scale up on hover
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'} // Reset scale on leave
                 >
                     <Typography variant="h6" gutterBottom>
-                        ⚠️ Rainfall Warning!
+                        <WarningAmber fontSize="large" /> ⚠️ Rainfall Warning!
                     </Typography>
                     <Typography variant="body1">
-                        Expected rainfall is over 60mm. Please take necessary precautions!
+                        Expected rainfall is over 60 mm. Please take necessary precautions.
                     </Typography>
                 </Paper>
             )}
