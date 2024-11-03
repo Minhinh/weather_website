@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import WeatherOverview from "./WeatherOverview";
 import SearchLocation from "./SearchLocation";
 import LoadingSpinner from "./LoadingSpinner";
-import ForecastOverview from "./ForecastOverview";
+import WeatherInfoCard from "./WeatherInfoCard";
 import "./HomePage.css";
 
 function HomePage() {
@@ -80,10 +80,7 @@ function HomePage() {
             )}
           </Grid>
           <Grid item xs={12} md={8}>
-          <ForecastOverview 
-            hourlyPredictions={hourlyPredictions} 
-            sevenDayPredictions={sevenDayPredictions} 
-          />
+            
             {/* Add any additional content you want on the right side */}
           </Grid>
         </Grid>
