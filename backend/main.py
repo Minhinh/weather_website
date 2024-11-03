@@ -22,6 +22,14 @@ app.add_middleware(
 class PredictionRequest(BaseModel):
     location: str
 
+class HourlyPrediction(BaseModel):
+    hour: int
+    temperature: float
+    humidity: float
+    wind_speed: float
+    wind_gust_speed: float
+    rainfall: float
+
 class DailyPrediction(BaseModel):
     day_of_week: str
     date: str
@@ -33,6 +41,7 @@ class DailyPrediction(BaseModel):
     wind_speed_3pm: int
     total_accidents: int
     rainfall: int
+    hourly_predictions: List[HourlyPrediction]  # Add this line
 
 # Weather model class to handle loading and predicting
 class WeatherModel:
@@ -88,6 +97,26 @@ class WeatherModel:
 
             # Calculate the date and day of the week
             prediction_date = today + timedelta(days=day)
+
+            # Generate hourly predictions (assuming 4 hourly predictions for simplicity)
+            hourly_predictions = []
+            for hour in range(24):
+                # Interpolating values for hourly data
+                temp_range = daily_predictions['max_temp'] - daily_predictions['min_temp']
+                hourly_temp = daily_predictions['min_temp'] + (temp_range * (hour / 24))
+                hourly_humidity = daily_predictions['humidity_9am'] + ((daily_predictions['humidity_3pm'] - daily_predictions['humidity_9am']) * (hour / 12))
+                hourly_wind_speed = daily_predictions['wind_speed_9am'] + ((daily_predictions['wind_speed_3pm'] - daily_predictions['wind_speed_9am']) * (hour / 12))
+                hourly_wind_gust = daily_predictions['wind_speed_3pm'] * 1.1  # Example: Assuming gust speed is slightly higher than wind speed
+
+                hourly_predictions.append(HourlyPrediction(
+                    hour=hour,
+                    temperature=round(hourly_temp, 1),
+                    humidity=round(hourly_humidity, 1),
+                    wind_speed=round(hourly_wind_speed, 1),
+                    wind_gust_speed=round(hourly_wind_gust, 1),
+                    rainfall=rainfall  # Assuming constant rainfall for simplicity
+                ))
+
             predictions.append(DailyPrediction(
                 day_of_week=prediction_date.strftime('%A'),  # Get the full name of the day
                 date=prediction_date.strftime('%d-%m-%Y'),
@@ -98,7 +127,8 @@ class WeatherModel:
                 wind_speed_9am=daily_predictions['wind_speed_9am'],
                 wind_speed_3pm=daily_predictions['wind_speed_3pm'],
                 total_accidents=total_accidents,
-                rainfall=daily_predictions['humidity_9am']  # Including rainfall in the response
+                rainfall=daily_predictions['humidity_9am'],  # Including rainfall in the response
+                hourly_predictions=hourly_predictions  # Add hourly predictions
             ))
 
         return predictions

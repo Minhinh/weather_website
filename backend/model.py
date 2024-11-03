@@ -15,6 +15,8 @@ class WeatherModel:
             "humidity_3pm": RandomForestRegressor(n_estimators=100, random_state=42),
             "wind_speed_9am": RandomForestRegressor(n_estimators=100, random_state=42),
             "wind_speed_3pm": RandomForestRegressor(n_estimators=100, random_state=42),
+            "rainfall": RandomForestRegressor(n_estimators=100, random_state=42),
+            "wind_gust_speed": RandomForestRegressor(n_estimators=100, random_state=42),
         }
 
         # Initialize Gradient Boosting model for accident prediction
@@ -31,17 +33,25 @@ class WeatherModel:
         data['Humidity3pmTomorrow'] = data.groupby('Location')['Humidity3pm'].shift(-1)
         data['WindSpeed9amTomorrow'] = data.groupby('Location')['WindSpeed9am'].shift(-1)
         data['WindSpeed3pmTomorrow'] = data.groupby('Location')['WindSpeed3pm'].shift(-1)
+        data['RainfallTomorrow'] = data.groupby('Location')['Rainfall'].shift(-1)
+        data['WindGustSpeedTomorrow'] = data.groupby('Location')['WindGustSpeed'].shift(-1)
 
-        data.dropna(subset=['MinTempTomorrow', 'MaxTempTomorrow', 'Humidity9amTomorrow', 'Humidity3pmTomorrow', 'WindSpeed9amTomorrow', 'WindSpeed3pmTomorrow'], inplace=True)
+        data.dropna(subset=['MinTempTomorrow', 'MaxTempTomorrow', 'Humidity9amTomorrow', 
+                            'Humidity3pmTomorrow', 'WindSpeed9amTomorrow', 
+                            'WindSpeed3pmTomorrow', 'RainfallTomorrow', 
+                            'WindGustSpeedTomorrow'], inplace=True)
 
-        X_weather = data[['MinTemp', 'MaxTemp', 'Humidity9am', 'Humidity3pm', 'WindSpeed9am', 'WindSpeed3pm']]
+        X_weather = data[['MinTemp', 'MaxTemp', 'Humidity9am', 'Humidity3pm', 
+                          'WindSpeed9am', 'WindSpeed3pm']]
         y_weather = {
             "min_temp": data['MinTempTomorrow'],
             "max_temp": data['MaxTempTomorrow'],
             "humidity_9am": data['Humidity9amTomorrow'],
             "humidity_3pm": data['Humidity3pmTomorrow'],
             "wind_speed_9am": data['WindSpeed9amTomorrow'],
-            "wind_speed_3pm": data['WindSpeed3pmTomorrow']
+            "wind_speed_3pm": data['WindSpeed3pmTomorrow'],
+            "rainfall": data['RainfallTomorrow'],
+            "wind_gust_speed": data['WindGustSpeedTomorrow']
         }
 
         # Train and save each Random Forest model
@@ -76,7 +86,8 @@ class WeatherModel:
 
     def predict_weather(self, features):
         predictions = {}
-        for key in ['min_temp', 'max_temp', 'humidity_9am', 'humidity_3pm', 'wind_speed_9am', 'wind_speed_3pm']:
+        for key in ['min_temp', 'max_temp', 'humidity_9am', 'humidity_3pm', 
+                    'wind_speed_9am', 'wind_speed_3pm', 'rainfall', 'wind_gust_speed']:
             predictions[key] = joblib.load(f'data/random_forest_{key}.pkl').predict([features])[0]
         return predictions
 
