@@ -77,7 +77,7 @@ class WeatherModel:
         today = datetime.now()
 
         # Predict for today and the next 5 days
-        for day in range(6):  # 0 for today, 1 for tomorrow, ..., 5 for the day after tomorrow
+        for day in range(10):  # 0 for today, 1 for tomorrow, ..., 5 for the day after tomorrow
             features = [[
                 latest_data['MinTemp'] + day,  # Increment min temp by day
                 latest_data['MaxTemp'] + day,  # Increment max temp by day

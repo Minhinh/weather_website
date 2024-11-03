@@ -1,8 +1,11 @@
+/* General Body Styles */
 body {
     margin: 0;
     padding: 0;
     font-family: 'Roboto', sans-serif;
 }
+
+/* Background Styles */
 .sunny-background {
     background: linear-gradient(to top, #817116, #FFF);
 }
@@ -15,7 +18,7 @@ body {
     background: linear-gradient(to bottom, #798697, #FFFFFF);
 }
 
-/* Optional styles to improve the UI */
+/* Background Animation */
 .background-animation {
     position: absolute;
     top: 0;
@@ -24,6 +27,26 @@ body {
     height: 100%;
     z-index: -1;
 }
+
+/* Forecast Card Styles */
+.forecast-card {
+    min-width: 120px;
+    margin: 0 7px;
+    padding: 16px;
+    text-align: center;
+    height: 100px; /* Set a fixed height for cards */
+    transition: transform 0.2s ease, box-shadow 0.2s ease; /* Animation for hover effects */
+    border-radius: 8px; /* Rounded corners for cards */
+    color: #333; /* Set text color for better contrast */
+    background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background for cards */
+}
+
+.forecast-card:hover {
+    transform: scale(1.05); /* Slightly enlarge the card */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Add shadow on hover */
+}
+
+/* Optional styles to improve the UI */
 @media (max-width: 600px) {
     .MuiGrid-item {
         padding: 0 10px; /* Adjust padding for small screens */

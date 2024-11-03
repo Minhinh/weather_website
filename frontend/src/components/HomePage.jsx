@@ -64,7 +64,13 @@ function HomePage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className={backgroundStyles.className}
-      style={{ height: "90vh", color: "white", padding: "20px", width: "100%", overflow: "hidden" }}
+      style={{
+        height: "90vh",
+        color: "white",
+        padding: "20px",
+        width: "100%",
+        overflow: "hidden",
+      }}
     >
       <Container maxWidth="xxl" style={{ paddingLeft: 10, paddingRight: 10 }}>
         <Grid container spacing={3} style={{ height: "100%" }}>
@@ -80,7 +86,13 @@ function HomePage() {
             )}
           </Grid>
           <Grid item xs={12} md={8}>
-            {selectedLocation && <ForecastOverview location={selectedLocation} />} {/* Add ForecastOverview here */}
+            {selectedLocation && (
+              <ForecastOverview
+                location={selectedLocation}
+                predictions={predictions}
+              />
+            )}{" "}
+            {/* Pass predictions here */}
           </Grid>
         </Grid>
       </Container>

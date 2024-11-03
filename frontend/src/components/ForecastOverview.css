@@ -1,46 +1,13 @@
-.forecast-overview {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
 .forecast-card {
-    width: 100%;
-    max-width: 600px;
-    margin: 10px auto;
-}
-
-.hourly-forecast, .daily-forecast {
-    display: flex;
-    overflow-x: auto; /* Enables horizontal scrolling */
-    padding: 10px 0;
-    scrollbar-width: thin; /* For Firefox */
-    scrollbar-color: #888 #f1f1f1; /* For Firefox */
-}
-
-.hourly-forecast::-webkit-scrollbar, .daily-forecast::-webkit-scrollbar {
-    height: 8px; /* Adjust scrollbar height */
-}
-
-.hourly-forecast::-webkit-scrollbar-thumb, .daily-forecast::-webkit-scrollbar-thumb {
-    background: #888; /* Adjust scrollbar color */
-    border-radius: 10px; /* Rounded corners */
-}
-
-.hourly-forecast::-webkit-scrollbar-track, .daily-forecast::-webkit-scrollbar-track {
-    background: #f1f1f1; /* Track color */
-}
-
-.daily-card, .hourly-item {
-    min-width: 120px; /* Set a minimum width for the cards */
-    margin: 5px; /* Space between cards */
-    padding: 10px; /* Inner padding */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    min-width: 120px;
+    margin: 0 7px;
+    padding: 16px;
     text-align: center;
+    height: 120px; /* Set a fixed height for cards */
+    transition: transform 0.2s ease, box-shadow 0.2s ease; /* Animation for hover effects */
 }
 
-.weather-icon {
-    margin-top: 5px;
+.forecast-card:hover {
+    transform: scale(1.05); /* Slightly enlarge the card */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Add shadow on hover */
 }
